@@ -1,6 +1,5 @@
 <script setup>
 import axios from 'axios'
-import { onMounted } from 'vue'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 let prevController = null;
