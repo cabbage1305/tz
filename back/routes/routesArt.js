@@ -1,12 +1,13 @@
 const express = require('express');
-
 const router = express.Router();
+const Article = require('../models/artModel.js');
+
 
 // Все статьи(домашняя страница)
 router.get('/', (req, res) => {
-    Article.find()
+    Article.findAll()
       .then((result) => {
-          res.render('index', { title: 'Все статьи', articles: result })
+          res.status(200).json({ title: 'Все статьи', articles: result })
       })
       .catch((err) =>{
         console.log(err);
@@ -14,13 +15,16 @@ router.get('/', (req, res) => {
 })
 // Добавление статьи
 router.get('/create', (req,res) =>{
-  res.render('create', { title: 'Добавить новую статью'});
+  res.status(200).json({ title: 'Добавить новую статью'});
 })
 
 router.post('/', (req,res) => {
-  const article = new Article(req.body);
-
-  article.save()
+  const artname = req.body.name;
+  const artcontent = req.body.content;
+  Article.create({
+    name: artname,
+    content: artcontent
+  })
     .then((result) => {
       res.redirect('/articles');
     })
@@ -31,19 +35,42 @@ router.post('/', (req,res) => {
 // Просмотр статьи
 router.get('/:id', (req,res) =>{
   const id =req.params.id;
-  Article.findById(id)
+  Article.findByPK(id)
     .then(result => {
-      res.render('details', {article: result, title: 'Содержание статьи'})
+      res.status(200).json( {article: result, title: 'Содержание статьи'})
     })
     .catch(err => {
       console.log(err);
     });
 })
+//обновление статьи
+router.put('/', (req,res) =>{
+  const id = req.params.id;
+  const artname = req.body.name;
+  const artcontent = req.body.content;
+
+  Article.update({
+    name: artname,
+    content: artcontent
+  },{ where: {
+    article_id: id
+  }
+  })
+  .then(result => {
+    res.json({redirect: '/articles'})
+  })
+  .catch(err => {
+    console.log(err);
+  })
+})
+
 // Удаление статьи
 router.delete('/:id', (req, res) => {
   const id = req.params.id;
 
-  Article.findByIdAndDelete(id)
+  Article.destroy({
+    where:{ article_id: id}
+  })
     .then(result => {
       res.json({ redirect: '/articles' })
     })

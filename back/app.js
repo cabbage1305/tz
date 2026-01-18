@@ -1,24 +1,16 @@
 const Sequelize = require("sequelize");
 const express = require("express");
 const cors = require("cors");
-const artRoutes = require("./routes/routesArt"); // CDUR for articles
-
-// определение объекта
-const sequelize = new Sequelize("name", "пользователь", "пароль", {
-  dialect: "postgres",
-  host: "localhost",
-});
-
-// Метод определения зависимости моделей
-//Article.hasMany(Comments);
+const artRoutes = require("./routes/routesArt.js"); // CDUR for articles
+// const comRoutes = require("./routes/routesCom.js");
+const myDB = require("./db.js");
+myDB.authenticate()
 
 // express app
 const app = express();
 app.use(cors());
 
 app.use(express.urlencoded());
-
-app.set("view engine", "ejs");
 
 app.listen(3000);
 
