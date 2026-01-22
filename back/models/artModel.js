@@ -40,5 +40,5 @@ sequelize
   })
   .catch((err) => console.log(err));
 
-module.exports = Article;
-module.exports = Comments;
+module.exports = {Article, Comments};
+
