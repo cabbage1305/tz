@@ -49,7 +49,7 @@
             :prepend-icon="link.icon"
             rel="noopener noreferrer"
             rounded="lg"
-            :subtitle="link.subtitle"
+            :text="link.subtitle"
             target="_blank"
             :title="link.title"
             variant="tonal"

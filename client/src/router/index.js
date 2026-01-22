@@ -28,6 +28,7 @@ router.onError((err, to) => {
   }
 })
 
+
 router.isReady().then(() => {
   localStorage.removeItem('vuetify:dynamic-reload')
 })
