@@ -39,16 +39,16 @@ function checkApiC(articleContent) {
 </script>
 
 <template>
-  <v-card height="50">
-    <v-toolbar
-      class="text-white"
-      image="https://cdn.vuetifyjs.com/images/backgrounds/vbanner.jpg"
-    >
-      <v-toolbar-title>
-        <v-btn variant="plain" :ripple="false" to="/">Articles</v-btn>
-      </v-toolbar-title>
-    </v-toolbar>
-  </v-card>
+  <v-toolbar
+    height="50"
+    class="text-white"
+    image="https://cdn.vuetifyjs.com/images/backgrounds/vbanner.jpg"
+  >
+    <v-toolbar-title>
+      <v-btn variant="plain" :ripple="false" to="/">Articles</v-btn>
+    </v-toolbar-title>
+  </v-toolbar>
+
   <v-sheet class="mx-auto" max-width="300">
     <v-form validate-on="submit lazy" @submit.prevent="submit">
       <v-text-field

@@ -11,18 +11,18 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-card height="50">
-    <v-toolbar
-      class="text-white"
-      image="https://cdn.vuetifyjs.com/images/backgrounds/vbanner.jpg"
-    >
-      <v-toolbar-title>
-        <v-btn variant="plain" :ripple="false" to="/">Articles</v-btn>
-      </v-toolbar-title>
+  <v-toolbar
+    height="50"
+    class="text-white"
+    image="https://cdn.vuetifyjs.com/images/backgrounds/vbanner.jpg"
+  >
+    <v-toolbar-title>
+      <v-btn variant="plain" :ripple="false" to="/">Articles</v-btn>
+    </v-toolbar-title>
 
-      <v-btn to="/article/create">Создать статью</v-btn>
-    </v-toolbar>
-  </v-card>
+    <v-btn to="/article/create">Создать статью</v-btn>
+  </v-toolbar>
+
   <div class="d-flex flex-column ga-2">
     <v-card
       v-for="item in articles"

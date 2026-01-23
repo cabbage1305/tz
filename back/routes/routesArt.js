@@ -33,7 +33,11 @@ router.get("/:id", (req, res) => {
   const id = req.params.id;
   Article.findByPk(id)
     .then((result) => {
-      res.status(200).json(result);
+      if (!result) {
+        res.status(404).json();
+      } else {
+        res.status(200).json(result);
+      }
     })
     .catch((err) => {
       console.log(err);
@@ -53,19 +57,29 @@ router.patch("/:id", (req, res) => {
     res.status(400).json({ message: "content can not be empty" });
     return;
   }
-  Article.update(
-    {
-      name: artname,
-      content: artcontent,
-    },
-    {
-      where: {
-        id,
-      },
-    },
-  )
+  Article.findByPk(id)
     .then((result) => {
-      res.status(200).json();
+      if (!result) {
+        res.status(404).json();
+      } else {
+        return Article.update(
+          {
+            name: artname,
+            content: artcontent,
+          },
+          {
+            where: {
+              id,
+            },
+          },
+        ).then((result) => {
+          if (result[0] == 0) {
+            res.status(404).json();
+          } else {
+            res.status(200).json();
+          }
+        });
+      }
     })
     .catch((err) => {
       console.log(err);
