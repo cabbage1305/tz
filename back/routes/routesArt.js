@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Article } = require("../models/artModel.js");
+const { Article, Comments } = require("../models/artModel.js");
 
 // Добавление статьи
 router.post("/", (req, res) => {
@@ -17,6 +17,28 @@ router.post("/", (req, res) => {
   Article.create({
     name: artname,
     content: artcontent,
+  })
+    .then((result) => {
+      console.log(result);
+      res.status(201).json({ id: result.dataValues.id });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json();
+    });
+});
+
+router.post("/:id/comment", (req, res) => {
+  const comment = req.body.text;
+
+  if (!comment) {
+    res.status(400).json({ message: "text can not be empty" });
+    return;
+  }
+
+  Comments.create({
+    text: comment,
+    articleId: req.params.id,
   })
     .then((result) => {
       console.log(result);
