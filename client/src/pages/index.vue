@@ -9,6 +9,7 @@ onMounted(async () => {
   articles.value = response.data.result;
 });
 </script>
+
 <template>
   <v-card height="50">
     <v-toolbar

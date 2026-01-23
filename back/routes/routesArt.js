@@ -6,6 +6,14 @@ const { Article } = require("../models/artModel.js");
 router.post("/", (req, res) => {
   const artname = req.body.name;
   const artcontent = req.body.content;
+  if (!artname) {
+    res.status(400).json({ message: "name can not be empty" });
+    return;
+  }
+  if (!artcontent) {
+    res.status(400).json({ message: "content can not be empty" });
+    return;
+  }
   Article.create({
     name: artname,
     content: artcontent,
@@ -37,7 +45,14 @@ router.patch("/:id", (req, res) => {
   const id = req.params.id;
   const artname = req.body.name;
   const artcontent = req.body.content;
-
+  if (!artname) {
+    res.status(400).json({ message: "name can not be empty" });
+    return;
+  }
+  if (!artcontent) {
+    res.status(400).json({ message: "content can not be empty" });
+    return;
+  }
   Article.update(
     {
       name: artname,
@@ -45,12 +60,12 @@ router.patch("/:id", (req, res) => {
     },
     {
       where: {
-        article_id: id,
+        id,
       },
     },
   )
     .then((result) => {
-      res.json({ redirect: "/articles" });
+      res.status(200).json();
     })
     .catch((err) => {
       console.log(err);
