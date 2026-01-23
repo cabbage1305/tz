@@ -66,6 +66,21 @@ router.get("/:id", (req, res) => {
       res.status(500).json();
     });
 });
+
+router.get("/:id/comments", (req, res) => {
+  Comments.findAll({
+    where: {
+      articleId: req.params.id,
+    },
+  })
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json();
+    });
+});
 //обновление статьи
 router.patch("/:id", (req, res) => {
   const id = req.params.id;
