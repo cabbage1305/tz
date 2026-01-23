@@ -13,6 +13,7 @@ const articleName = ref("");
 const articleContent = ref("");
 const rules = [(value) => checkApi(value)];
 const rulesc = [(value) => checkApiC(value)];
+const loading = ref(false);
 
 // запрос на вывод одной статьи по id
 watch(
@@ -29,11 +30,16 @@ async function getArticle(newId) {
   prevController = new AbortController();
   article.value = null;
   console.log(newId);
-  const response = await axios.get(`http://localhost:3000/article/${newId}`, {
-    signal: prevController.signal,
-  });
-  console.log(response);
-  article.value = response.data;
+  try {
+    loading.value = true;
+
+    const response = await axios.get(`http://localhost:3000/article/${newId}`, {
+      signal: prevController.signal,
+    });
+    article.value = response.data;
+  } finally {
+    loading.value = false;
+  }
 }
 
 // запрос на удаление
@@ -41,6 +47,7 @@ async function deleteArticle() {
   await axios.delete(`http://localhost:3000/article/${route.params.id}`);
   router.push(`/`);
 }
+// запрос на редактирование
 async function updateArticle(event) {
   const results = await event;
   if (results.valid) {
@@ -65,20 +72,19 @@ function checkApiC(articleContent) {
 </script>
 
 <template>
-  <v-card height="50">
-    <v-toolbar
-      class="text-white"
-      image="https://cdn.vuetifyjs.com/images/backgrounds/vbanner.jpg"
-    >
-      <v-toolbar-title>
-        <v-btn variant="plain" :ripple="false" to="/">Articles</v-btn>
-      </v-toolbar-title>
+  <v-toolbar
+    height="50"
+    class="text-white"
+    image="https://cdn.vuetifyjs.com/images/backgrounds/vbanner.jpg"
+  >
+    <v-toolbar-title>
+      <v-btn variant="plain" :ripple="false" to="/">Articles</v-btn>
+    </v-toolbar-title>
 
-      <v-btn to="/article/create">Создать статью</v-btn>
-    </v-toolbar>
-  </v-card>
+    <v-btn to="/article/create">Создать статью</v-btn>
+  </v-toolbar>
 
-  <v-card v-if="article" height="200">
+  <v-card v-if="article && loading == false" height="200">
     <v-card-item>
       <v-card-title>
         {{ article.name }}
@@ -137,4 +143,14 @@ function checkApiC(articleContent) {
       </v-form>
     </v-expand-transition>
   </v-card>
+  <div v-else-if="loading == true">loading...</div>
+  <div v-else>
+    <div
+      class="mx-auto d-flex flex-column ga-6 justify-center align-center text-h2 font-weight-bold"
+      style="height: 370px; width: 940px"
+    >
+      404, Статья не найдена
+      <v-btn to="/">Вернуться на главную</v-btn>
+    </div>
+  </div>
 </template>
