@@ -10,6 +10,7 @@ const article = ref();
 const route = useRoute();
 const router = useRouter();
 const reveal = ref(false);
+const revealcom = ref(false);
 const articleName = ref("");
 const articleContent = ref("");
 const rules = [(value) => validateName(value)];
@@ -17,7 +18,8 @@ const rulesc = [(value) => validateContent(value)];
 const loading = ref(false);
 const comments = ref();
 const commentText = ref("");
-
+const commentTextr = ref("");
+const commentId = 0;
 // запрос на вывод одной статьи по id
 watch(
   () => route.params.id,
@@ -33,7 +35,7 @@ async function getArticle(newId) {
   }
   articleController = new AbortController();
   article.value = null;
-  console.log(newId);
+
   try {
     loading.value = true;
 
@@ -51,7 +53,7 @@ async function getComments(newId) {
   }
   commentsController = new AbortController();
   comments.value = null;
-  console.log(newId);
+
   try {
     loading.value = true;
 
@@ -72,6 +74,13 @@ async function deleteArticle() {
   await axios.delete(`http://localhost:3000/article/${route.params.id}`);
   router.push(`/`);
 }
+
+async function deleteComment(id) {
+  await axios.delete(
+    `http://localhost:3000/article/${route.params.id}/comment/${id}`,
+  );
+  getComments(route.params.id);
+}
 // запрос на редактирование
 async function updateArticle(event) {
   const results = await event;
@@ -82,6 +91,19 @@ async function updateArticle(event) {
     });
     reveal.value = false;
     getArticle(route.params.id);
+  }
+}
+async function updateComment(event, id) {
+  const results = await event;
+  if (results.valid) {
+    await axios.patch(
+      `http://localhost:3000/article/${route.params.id}/comment/${id}`,
+      {
+        text: commentTextr.value,
+      },
+    );
+    revealcom.value = false;
+    getComments(route.params.id);
   }
 }
 
@@ -200,6 +222,39 @@ async function createComment(event) {
       </template>
 
       <v-list-item-title v-text="item.text"></v-list-item-title>
+
+      <template v-slot:append>
+        <v-btn
+          @click="
+            revealcom = true;
+            commentId = item.id;
+            commentTextr = item.text;
+          "
+          icon="mdi-comment-edit"
+        ></v-btn>
+        <v-btn
+          @click="
+            revealcom = false;
+            deleteComment(item.id);
+          "
+          icon="mdi-trash-can"
+        ></v-btn>
+      </template>
+
+      <v-form
+        v-if="revealcom && commentId == item.id"
+        @submit.prevent="updateComment($event, item.id)"
+      >
+        <v-text-field v-model="commentTextr" label="Изменить комментарий">
+        </v-text-field>
+
+        <v-btn @click="revealcom = false" text="Закрыть" variant="text"></v-btn>
+        <v-btn
+          :disabled="commentTextr == ''"
+          type="submit"
+          text="Сохранить изменения"
+        ></v-btn>
+      </v-form>
     </v-list-item>
   </v-list>
   <v-sheet class="mx-auto" width="100%">
