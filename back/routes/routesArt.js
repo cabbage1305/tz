@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Article } = require("../models/artModel.js");
+const { Article, Comments } = require("../models/artModel.js");
 
 // Добавление статьи
 router.post("/", (req, res) => {
@@ -28,6 +28,28 @@ router.post("/", (req, res) => {
     });
 });
 
+router.post("/:id/comment", (req, res) => {
+  const comment = req.body.text;
+
+  if (!comment) {
+    res.status(400).json({ message: "text can not be empty" });
+    return;
+  }
+
+  Comments.create({
+    text: comment,
+    articleId: req.params.id,
+  })
+    .then((result) => {
+      console.log(result);
+      res.status(201).json({ id: result.dataValues.id });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json();
+    });
+});
+
 // Просмотр статьи
 router.get("/:id", (req, res) => {
   const id = req.params.id;
@@ -38,6 +60,21 @@ router.get("/:id", (req, res) => {
       } else {
         res.status(200).json(result);
       }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json();
+    });
+});
+
+router.get("/:id/comments", (req, res) => {
+  Comments.findAll({
+    where: {
+      articleId: req.params.id,
+    },
+  })
+    .then((result) => {
+      res.status(200).json({ result });
     })
     .catch((err) => {
       console.log(err);
@@ -86,6 +123,44 @@ router.patch("/:id", (req, res) => {
       res.status(500).json();
     });
 });
+router.patch("/:id/comment/:commentid", (req, res) => {
+  const id = req.params.id;
+  const commentId = req.params.commentid;
+  const commenttext = req.body.text;
+  if (!commenttext) {
+    res.status(400).json({ message: "text can not be empty" });
+    return;
+  }
+
+  Comments.findByPk(commentId)
+    .then((result) => {
+      if (!result) {
+        res.status(404).json();
+      } else {
+        return Comments.update(
+          {
+            text: commenttext,
+          },
+          {
+            where: {
+              articleId: id,
+              id: commentId,
+            },
+          },
+        ).then((result) => {
+          if (result[0] == 0) {
+            res.status(404).json();
+          } else {
+            res.status(200).json();
+          }
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json();
+    });
+});
 
 // Удаление статьи
 router.delete("/:id", (req, res) => {
@@ -93,6 +168,24 @@ router.delete("/:id", (req, res) => {
 
   Article.destroy({
     where: { id },
+  })
+    .then((result) => {
+      res.status(204).json();
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json();
+    });
+});
+
+router.delete("/:id/comment/:commentid", (req, res) => {
+  const id = req.params.id;
+  const commentId = req.params.commentid;
+  Comments.destroy({
+    where: {
+      articleId: id,
+      id: commentId,
+    },
   })
     .then((result) => {
       res.status(204).json();

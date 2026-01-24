@@ -3,40 +3,67 @@ import axios from "axios";
 import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useRouter } from "vue-router";
-let prevController = null;
+let articleController = null;
+let commentsController = null;
 /**@type {import('vue').Ref<{name: string; content: string}>} */ //to do learn jsdoc
 const article = ref();
 const route = useRoute();
 const router = useRouter();
 const reveal = ref(false);
+const revealcom = ref(false);
 const articleName = ref("");
 const articleContent = ref("");
-const rules = [(value) => checkApi(value)];
-const rulesc = [(value) => checkApiC(value)];
+const rules = [(value) => validateName(value)];
+const rulesc = [(value) => validateContent(value)];
 const loading = ref(false);
-
+const comments = ref();
+const commentText = ref("");
+const commentTextr = ref("");
+const commentId = 0;
 // запрос на вывод одной статьи по id
 watch(
   () => route.params.id,
-  async (newId, oldId) => {
-    await getArticle(newId);
+  (newId, oldId) => {
+    getArticle(newId);
+    getComments(newId);
   },
   { immediate: true },
 );
 async function getArticle(newId) {
-  if (prevController != null) {
-    prevController.abort();
+  if (articleController != null) {
+    articleController.abort();
   }
-  prevController = new AbortController();
+  articleController = new AbortController();
   article.value = null;
-  console.log(newId);
+
   try {
     loading.value = true;
 
     const response = await axios.get(`http://localhost:3000/article/${newId}`, {
-      signal: prevController.signal,
+      signal: articleController.signal,
     });
     article.value = response.data;
+  } finally {
+    loading.value = false;
+  }
+}
+async function getComments(newId) {
+  if (commentsController != null) {
+    commentsController.abort();
+  }
+  commentsController = new AbortController();
+  comments.value = null;
+
+  try {
+    loading.value = true;
+
+    const response = await axios.get(
+      `http://localhost:3000/article/${newId}/comments`,
+      {
+        signal: commentsController.signal,
+      },
+    );
+    comments.value = response.data.result;
   } finally {
     loading.value = false;
   }
@@ -46,6 +73,13 @@ async function getArticle(newId) {
 async function deleteArticle() {
   await axios.delete(`http://localhost:3000/article/${route.params.id}`);
   router.push(`/`);
+}
+
+async function deleteComment(id) {
+  await axios.delete(
+    `http://localhost:3000/article/${route.params.id}/comment/${id}`,
+  );
+  getComments(route.params.id);
 }
 // запрос на редактирование
 async function updateArticle(event) {
@@ -59,15 +93,43 @@ async function updateArticle(event) {
     getArticle(route.params.id);
   }
 }
+async function updateComment(event, id) {
+  const results = await event;
+  if (results.valid) {
+    await axios.patch(
+      `http://localhost:3000/article/${route.params.id}/comment/${id}`,
+      {
+        text: commentTextr.value,
+      },
+    );
+    revealcom.value = false;
+    getComments(route.params.id);
+  }
+}
 
-function checkApi(articleName) {
+function validateName(articleName) {
   if (!articleName) return "Please enter article name.";
   return true;
 }
 
-function checkApiC(articleContent) {
+function validateContent(articleContent) {
   if (!articleContent) return "Please enter article content.";
   return true;
+}
+
+async function createComment(event) {
+  const results = await event;
+
+  if (results.valid) {
+    await axios.post(
+      `http://localhost:3000/article/${route.params.id}/comment`,
+      {
+        text: commentText.value,
+      },
+    );
+    getComments(route.params.id);
+    commentText.value = "";
+  }
 }
 </script>
 
@@ -107,7 +169,6 @@ function checkApiC(articleContent) {
         text="Редактировать"
         variant="text"
       ></v-btn>
-      <v-btn> Комментарии</v-btn>
       <v-btn @click="deleteArticle"> Удалить статью</v-btn>
     </v-card-actions>
     <v-expand-transition>
@@ -153,4 +214,58 @@ function checkApiC(articleContent) {
       <v-btn to="/">Вернуться на главную</v-btn>
     </div>
   </div>
+
+  <v-list>
+    <v-list-item v-for="item in comments">
+      <template v-slot:prepend>
+        <v-icon icon="mdi-account"></v-icon>
+      </template>
+
+      <v-list-item-title v-text="item.text"></v-list-item-title>
+
+      <template v-slot:append>
+        <v-btn
+          @click="
+            revealcom = true;
+            commentId = item.id;
+            commentTextr = item.text;
+          "
+          icon="mdi-comment-edit"
+        ></v-btn>
+        <v-btn
+          @click="
+            revealcom = false;
+            deleteComment(item.id);
+          "
+          icon="mdi-trash-can"
+        ></v-btn>
+      </template>
+
+      <v-form
+        v-if="revealcom && commentId == item.id"
+        @submit.prevent="updateComment($event, item.id)"
+      >
+        <v-text-field v-model="commentTextr" label="Изменить комментарий">
+        </v-text-field>
+
+        <v-btn @click="revealcom = false" text="Закрыть" variant="text"></v-btn>
+        <v-btn
+          :disabled="commentTextr == ''"
+          type="submit"
+          text="Сохранить изменения"
+        ></v-btn>
+      </v-form>
+    </v-list-item>
+  </v-list>
+  <v-sheet class="mx-auto" width="100%">
+    <v-form @submit.prevent="createComment">
+      <v-textarea v-model="commentText" label="Комментировать"></v-textarea>
+
+      <div class="d-flex justify-end">
+        <v-btn :disabled="commentText == ''" type="submit"
+          >Оставить комментарий</v-btn
+        >
+      </div>
+    </v-form>
+  </v-sheet>
 </template>
