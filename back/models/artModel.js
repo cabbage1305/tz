@@ -16,6 +16,9 @@ const Article = sequelize.define("article", {
     type: Sequelize.TEXT,
     allowNull: false,
   },
+  createdAt: {
+    type: Sequelize.DATEONLY,
+  },
 });
 
 const Comments = sequelize.define("comments", {
@@ -29,6 +32,9 @@ const Comments = sequelize.define("comments", {
     type: Sequelize.TEXT,
     allowNull: false,
   },
+  createdAt: {
+    type: Sequelize.DATEONLY,
+  },
 });
 
 Article.hasMany(Comments);
@@ -40,5 +46,4 @@ sequelize
   })
   .catch((err) => console.log(err));
 
-module.exports = {Article, Comments};
-
+module.exports = { Article, Comments };
