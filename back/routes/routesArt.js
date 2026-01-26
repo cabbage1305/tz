@@ -165,12 +165,20 @@ router.patch("/:id/comment/:commentid", (req, res) => {
 // Удаление статьи
 router.delete("/:id", (req, res) => {
   const id = req.params.id;
-
-  Article.destroy({
-    where: { id },
+  Comments.destroy({
+    where: { articleId: id },
   })
     .then((result) => {
-      res.status(204).json();
+      Article.destroy({
+        where: { id },
+      })
+        .then((result) => {
+          res.status(204).json();
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(500).json();
+        });
     })
     .catch((err) => {
       console.log(err);
