@@ -1,4 +1,5 @@
-const { Article } = require("./models/artModel.js");
+const { Article, Comments } = require("./models/artModel.js");
+const { Op } = require("sequelize");
 const express = require("express");
 const cors = require("cors");
 const artRoutes = require("./routes/routesArt.js"); // CDUR for articles
@@ -27,6 +28,35 @@ app.get("/articles", (req, res) => {
 });
 
 app.use("/article", artRoutes);
+
+app.get("/analytic/comments/", (req, res) => {
+  const date1 = req.query.dateFrom;
+  const date2 = req.query.dateTo;
+  if (!date1 || typeof date1 != "string") {
+    res.status(400).json({ message: "invalid datefrom format" });
+    return;
+  }
+  if (!date2 || typeof date2 != "string") {
+    res.status(400).json({ message: "invalid dateto format" });
+    return;
+  }
+  Article.findAll({
+    include: [
+      {
+        model: Comments,
+        where: { createdAt: { [Op.between]: [date1, date2] } },
+        required: true,
+      },
+    ],
+  })
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json();
+    });
+});
 
 app.use((req, res) => {
   res.status(404).json();

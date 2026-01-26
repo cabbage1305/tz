@@ -1,6 +1,6 @@
 <script setup>
 import axios from "axios";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useRouter } from "vue-router";
 let articleController = null;
@@ -10,16 +10,21 @@ const article = ref();
 const route = useRoute();
 const router = useRouter();
 const reveal = ref(false);
-const revealcom = ref(false);
 const articleName = ref("");
 const articleContent = ref("");
 const rules = [(value) => validateName(value)];
 const rulesc = [(value) => validateContent(value)];
 const loading = ref(false);
-const comments = ref();
+/**@type {import('vue').Ref<{text: string; createdAt: string}[]>}*/
+const comments = ref([]);
 const commentText = ref("");
 const commentTextr = ref("");
-const commentId = 0;
+const commentId = ref();
+const commentsort = computed(() =>
+  comments.value.toSorted(
+    (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+  ),
+);
 // запрос на вывод одной статьи по id
 watch(
   () => route.params.id,
@@ -52,7 +57,7 @@ async function getComments(newId) {
     commentsController.abort();
   }
   commentsController = new AbortController();
-  comments.value = null;
+  comments.value = [];
 
   try {
     loading.value = true;
@@ -102,7 +107,7 @@ async function updateComment(event, id) {
         text: commentTextr.value,
       },
     );
-    revealcom.value = false;
+    commentId.value = null;
     getComments(route.params.id);
   }
 }
@@ -216,7 +221,7 @@ async function createComment(event) {
   </div>
 
   <v-list>
-    <v-list-item v-for="item in comments">
+    <v-list-item v-for="item in commentsort">
       <template v-slot:prepend>
         <v-icon icon="mdi-account"></v-icon>
       </template>
@@ -226,29 +231,22 @@ async function createComment(event) {
       <template v-slot:append>
         <v-btn
           @click="
-            revealcom = true;
             commentId = item.id;
             commentTextr = item.text;
           "
           icon="mdi-comment-edit"
         ></v-btn>
-        <v-btn
-          @click="
-            revealcom = false;
-            deleteComment(item.id);
-          "
-          icon="mdi-trash-can"
-        ></v-btn>
+        <v-btn @click="deleteComment(item.id)" icon="mdi-trash-can"></v-btn>
       </template>
 
       <v-form
-        v-if="revealcom && commentId == item.id"
+        v-if="commentId == item.id"
         @submit.prevent="updateComment($event, item.id)"
       >
         <v-text-field v-model="commentTextr" label="Изменить комментарий">
         </v-text-field>
 
-        <v-btn @click="revealcom = false" text="Закрыть" variant="text"></v-btn>
+        <v-btn @click="commentId = null" text="Закрыть" variant="text"></v-btn>
         <v-btn
           :disabled="commentTextr == ''"
           type="submit"
